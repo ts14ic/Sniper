@@ -1,3 +1,8 @@
+About
+=====
+This is an attempt to experience first hand what Growing Object Oriented Software Guided By Tests describes.
+It's fun! 
+
 Setup
 =====
 
