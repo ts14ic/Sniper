@@ -26,8 +26,10 @@ class AuctionSniperEndToEndTest {
     @Test
     fun sniperJoinsAuctionUntilAuctionClosed() {
         auction.startSellingItem()
+
         application.startBiddingIn(auction)
         auction.hasReceivedJoinRequestFromSniper()
+
         auction.announceClosed()
         application.showsSniperHasLostAuction()
     }
