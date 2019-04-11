@@ -10,7 +10,7 @@ import javax.swing.JLabel
 import javax.swing.SwingUtilities
 import javax.swing.border.LineBorder
 
-class Main : SniperListener {
+class Main {
     companion object {
         const val MAIN_WINDOW_NAME = "Sniper"
         const val SNIPER_STATUS_NAME = "status"
@@ -70,7 +70,10 @@ class Main : SniperListener {
         this.notToBeGcd = chat
 
         val auction = XmppAuction(chat)
-        chat.addMessageListener(AuctionMessageTranslator(AuctionSniper(auction, this)))
+        chat.addMessageListener(AuctionMessageTranslator(AuctionSniper(
+                auction,
+                SniperStateDisplayer(ui)
+        )))
         auction.join()
     }
 
@@ -82,23 +85,12 @@ class Main : SniperListener {
         })
     }
 
-    override fun sniperLost() {
-        SwingUtilities.invokeLater {
-            ui.showStatus(MainWindow.STATUS_LOST)
-        }
-    }
-
-    override fun currentPrice(price: Int, increment: Int) {
-        SwingUtilities.invokeLater {
-            ui.showStatus(MainWindow.STATUS_BIDDING)
-        }
-    }
-
     class MainWindow : JFrame {
         companion object {
             const val STATUS_JOINING = "Joining"
             const val STATUS_BIDDING = "Bidding"
             const val STATUS_LOST = "Lost"
+            const val STATUS_WINNING = "Winning"
         }
 
         private val sniperStatus: JLabel
@@ -127,4 +119,29 @@ class Main : SniperListener {
         }
     }
 
+    class SniperStateDisplayer : SniperListener {
+        private val ui: Main.MainWindow
+
+        constructor(ui: Main.MainWindow) {
+            this.ui = ui
+        }
+
+        override fun sniperBidding() {
+            showStatus(Main.MainWindow.STATUS_BIDDING)
+        }
+
+        override fun sniperLost() {
+            showStatus(Main.MainWindow.STATUS_LOST)
+        }
+
+        override fun sniperWinning() {
+            showStatus(Main.MainWindow.STATUS_WINNING)
+        }
+
+        private fun showStatus(status: String) {
+            SwingUtilities.invokeLater {
+                ui.showStatus(status)
+            }
+        }
+    }
 }

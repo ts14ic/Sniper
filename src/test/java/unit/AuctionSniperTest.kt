@@ -40,6 +40,6 @@ class AuctionSniperTest {
         sniper.currentPrice(price, increment)
 
         // ASSERT
-        verify { sniperListener.currentPrice(price, increment) }
+        verify { sniperListener.sniperBidding() }
     }
 }

@@ -12,31 +12,51 @@ class AuctionMessageTranslator : MessageListener {
     }
 
     override fun processMessage(chat: Chat?, message: Message) {
-        val event = unpackEventFrom(message)
+        val event = AuctionEvent.from(message.body)
 
-        val type = event["Event"]
-        if (type == "CLOSE") {
-            listener.auctionClosed()
-        } else if (type == "PRICE") {
-            listener.currentPrice(
-                    event.getValue("CurrentPrice").toInt(),
-                    event.getValue("Increment").toInt()
-            )
+        when (event.type) {
+            "CLOSE" -> listener.auctionClosed()
+            "PRICE" -> listener.currentPrice(event.currentPrice, event.increment)
         }
     }
 
-    private fun unpackEventFrom(message: Message): Map<String, String> {
-        val event = mutableMapOf<String, String>()
-        for (element in message.body.split(";")) {
-            if (element.isEmpty()) {
-                continue
+    class AuctionEvent {
+        companion object {
+            fun from(message: String): AuctionEvent {
+                val event = AuctionEvent()
+                for (field in fieldsIn(message)) {
+                    event.addField(field)
+                }
+                return event
             }
-            val pair = element.split(":")
-            val key = pair[0].trim()
-            val value = pair[1].trim()
-            event[key] = value
+
+            private fun fieldsIn(message: String): List<String> {
+                return message.split(";")
+            }
         }
-        return event
+
+        val type
+            get() = get("Event")
+        val currentPrice
+            get() = getInt("CurrentPrice")
+        val increment
+            get() = getInt("Increment")
+        private val fields = mutableMapOf<String, String>()
+
+        private fun get(key: String): String {
+            return fields.getValue(key)
+        }
+
+        private fun getInt(key: String): Int {
+            return fields.getValue(key).toInt()
+        }
+
+        private fun addField(field: String) {
+            val pair = field.split(":")
+            if (pair.size == 2) {
+                fields[pair[0].trim()] = pair[1].trim()
+            }
+        }
     }
 }
 

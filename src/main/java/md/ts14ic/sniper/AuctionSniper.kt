@@ -15,11 +15,12 @@ class AuctionSniper : AuctionEventListener {
 
     override fun currentPrice(price: Int, increment: Int) {
         auction.bid(price + increment)
-        listener.currentPrice(price, increment)
+        listener.sniperBidding()
     }
 }
 
 interface SniperListener {
+    fun sniperBidding()
     fun sniperLost()
-    fun currentPrice(price: Int, increment: Int)
+    fun sniperWinning()
 }
