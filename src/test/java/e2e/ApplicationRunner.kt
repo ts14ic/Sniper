@@ -2,7 +2,8 @@ package e2e
 
 import e2e.FakeAuctionServer.Companion.XMPP_HOSTNAME
 import md.ts14ic.sniper.Main
-import md.ts14ic.sniper.Main.MainWindow.Companion.STATUS_JOINING
+import md.ts14ic.sniper.MainWindow
+import md.ts14ic.sniper.MainWindow.Companion.STATUS_JOINING
 
 class ApplicationRunner {
     companion object {
@@ -28,19 +29,19 @@ class ApplicationRunner {
     }
 
     fun showsSniperHasLostAuction() {
-        driver.showsSniperStatus(Main.MainWindow.STATUS_LOST)
+        driver.showsSniperStatus(MainWindow.STATUS_LOST)
     }
 
     fun showsSniperHasWonAuction() {
-        driver.showsSniperStatus(Main.MainWindow.STATUS_WON)
+        driver.showsSniperStatus(MainWindow.STATUS_WON)
     }
 
     fun hasShownSniperIsBidding() {
-        driver.showsSniperStatus(Main.MainWindow.STATUS_BIDDING)
+        driver.showsSniperStatus(MainWindow.STATUS_BIDDING)
     }
 
     fun hasShownSniperIsWinning() {
-        driver.showsSniperStatus(Main.MainWindow.STATUS_WINNING)
+        driver.showsSniperStatus(MainWindow.STATUS_WINNING)
     }
 
     fun stop() {
