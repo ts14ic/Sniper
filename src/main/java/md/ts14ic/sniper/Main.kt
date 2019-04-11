@@ -12,8 +12,8 @@ class Main {
         const val ITEM_ID_AS_LOGIN = "auction-%s"
         const val AUCTION_ID_FORMAT = "$ITEM_ID_AS_LOGIN@%s/$AUCTION_RESOURCE"
 
-        const val JOIN_COMMAND_FORMAT = "SOLVersion: 1.1; Command: Join;"
-        const val BID_COMMAND_FORMAT = "SOLVersion: 1.1; Command: Bid; Price: %s;"
+        const val JOIN_COMMAND_FORMAT = "SOLVersion: 1.1; Command: JOIN;"
+        const val BID_COMMAND_FORMAT = "SOLVersion: 1.1; Command: BID; Price: %s;"
         const val CLOSE_EVENT_FORMAT = "SOLVersion: 1.1; Event: CLOSE;"
         const val PRICE_EVENT_FORMAT = "SOLVersion: 1.1; Event: PRICE; CurrentPrice: %s; Increment: %s; Bidder: %s"
 
