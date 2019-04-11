@@ -1,22 +1,32 @@
 package md.ts14ic.sniper
 
+import md.ts14ic.sniper.AuctionEventListener.*
 import org.jivesoftware.smack.Chat
 import org.jivesoftware.smack.MessageListener
 import org.jivesoftware.smack.packet.Message
 
 class AuctionMessageTranslator : MessageListener {
-    private val listener: AuctionEventListener
+    companion object {
+        const val EVENT_TYPE_CLOSE = "CLOSE"
+        const val EVENT_TYPE_PRICE = "PRICE"
+    }
 
-    constructor(listener: AuctionEventListener) {
+    private val listener: AuctionEventListener
+    private val sniperId: String
+
+    constructor(sniperId: String, listener: AuctionEventListener) {
         this.listener = listener
+        this.sniperId = sniperId
     }
 
     override fun processMessage(chat: Chat?, message: Message) {
         val event = AuctionEvent.from(message.body)
 
         when (event.type) {
-            "CLOSE" -> listener.auctionClosed()
-            "PRICE" -> listener.currentPrice(event.currentPrice, event.increment)
+            EVENT_TYPE_CLOSE ->
+                listener.auctionClosed()
+            EVENT_TYPE_PRICE ->
+                listener.currentPrice(event.currentPrice, event.increment, event.isFrom(sniperId))
         }
     }
 
@@ -41,7 +51,17 @@ class AuctionMessageTranslator : MessageListener {
             get() = getInt("CurrentPrice")
         val increment
             get() = getInt("Increment")
+        private val bidder
+            get() = get("Bidder")
         private val fields = mutableMapOf<String, String>()
+
+        fun isFrom(sniperId: String): PriceSource {
+            return if (sniperId == bidder) {
+                PriceSource.FromSniper
+            } else {
+                PriceSource.FromOtherBidder
+            }
+        }
 
         private fun get(key: String): String {
             return fields.getValue(key)
@@ -62,5 +82,9 @@ class AuctionMessageTranslator : MessageListener {
 
 interface AuctionEventListener {
     fun auctionClosed()
-    fun currentPrice(price: Int, increment: Int)
+    fun currentPrice(price: Int, increment: Int, priceSource: PriceSource)
+
+    enum class PriceSource {
+        FromSniper, FromOtherBidder
+    }
 }

@@ -1,5 +1,6 @@
 package md.ts14ic.sniper
 
+import md.ts14ic.sniper.Main.MainWindow.*
 import org.jivesoftware.smack.Chat
 import org.jivesoftware.smack.XMPPConnection
 import java.awt.Color
@@ -70,10 +71,13 @@ class Main {
         this.notToBeGcd = chat
 
         val auction = XmppAuction(chat)
-        chat.addMessageListener(AuctionMessageTranslator(AuctionSniper(
-                auction,
-                SniperStateDisplayer(ui)
-        )))
+        chat.addMessageListener(AuctionMessageTranslator(
+                connection.user,
+                AuctionSniper(
+                        auction,
+                        SniperStateDisplayer(ui)
+                )
+        ))
         auction.join()
     }
 
@@ -90,6 +94,7 @@ class Main {
             const val STATUS_JOINING = "Joining"
             const val STATUS_BIDDING = "Bidding"
             const val STATUS_LOST = "Lost"
+            const val STATUS_WON = "Won"
             const val STATUS_WINNING = "Winning"
         }
 
@@ -120,22 +125,26 @@ class Main {
     }
 
     class SniperStateDisplayer : SniperListener {
-        private val ui: Main.MainWindow
+        private val ui: MainWindow
 
-        constructor(ui: Main.MainWindow) {
+        constructor(ui: MainWindow) {
             this.ui = ui
         }
 
         override fun sniperBidding() {
-            showStatus(Main.MainWindow.STATUS_BIDDING)
+            showStatus(MainWindow.STATUS_BIDDING)
         }
 
         override fun sniperLost() {
-            showStatus(Main.MainWindow.STATUS_LOST)
+            showStatus(MainWindow.STATUS_LOST)
         }
 
         override fun sniperWinning() {
-            showStatus(Main.MainWindow.STATUS_WINNING)
+            showStatus(MainWindow.STATUS_WINNING)
+        }
+
+        override fun sniperWon() {
+            showStatus(MainWindow.STATUS_WON)
         }
 
         private fun showStatus(status: String) {

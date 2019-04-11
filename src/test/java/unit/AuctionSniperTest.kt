@@ -1,10 +1,10 @@
 package unit
 
-import io.mockk.MockKAnnotations
+import io.mockk.*
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
-import io.mockk.verify
 import md.ts14ic.sniper.Auction
+import md.ts14ic.sniper.AuctionEventListener.*
 import md.ts14ic.sniper.AuctionSniper
 import md.ts14ic.sniper.SniperListener
 import org.junit.Before
@@ -22,7 +22,7 @@ class AuctionSniperTest {
     fun initMocks() = MockKAnnotations.init(this)
 
     @Test
-    fun reportsLostWhenAuctionCloses() {
+    fun reportsLostIfAuctionClosesImmediately() {
         // ACT
         sniper.auctionClosed()
 
@@ -31,15 +31,46 @@ class AuctionSniperTest {
     }
 
     @Test
-    fun bidsHigherAndReportsBiddingWhenNewPriceArrives() {
-        // ARRANGE
-        val price = 1001
-        val increment = 25
-
+    fun reportsLostIfAuctionClosesWhenBidding() {
         // ACT
-        sniper.currentPrice(price, increment)
+        sniper.currentPrice(123, 45, PriceSource.FromOtherBidder)
+        sniper.auctionClosed()
+
+        // ASSERT
+        verifyOrder {
+            sniperListener.sniperBidding()
+            sniperListener.sniperLost()
+        }
+    }
+
+    @Test
+    fun reportsWonIfAuctionClosesWhenWinning() {
+        // ACT
+        sniper.currentPrice(123, 45, PriceSource.FromSniper)
+        sniper.auctionClosed()
+
+        // ASSERT
+        verifyOrder {
+            sniperListener.sniperWinning()
+            sniperListener.sniperWon()
+        }
+    }
+
+    @Test
+    fun bidsHigherAndReportsBiddingWhenNewPriceArrives() {
+        // ACT
+        sniper.currentPrice(1001, 25, PriceSource.FromOtherBidder)
 
         // ASSERT
         verify { sniperListener.sniperBidding() }
+    }
+
+    @Test
+    fun reportIsWinningWhenCurrentPriceComesFromSniper() {
+        // ACT
+        sniper.currentPrice(123, 45, PriceSource.FromSniper)
+
+        // ASSERT
+        verify { sniperListener.sniperWinning() }
     }
 }

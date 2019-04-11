@@ -7,7 +7,7 @@ class AuctionSniperEndToEndTest {
     /*
     DONE: single item join, lose without bidding
     DONE: single item join, bid and lose
-    TODO: single item join, bid and win
+    DONE: single item join, bid and win
     TODO: single item - show price details
     TODO: multiple items
     TODO: add new items through UI
@@ -48,5 +48,24 @@ class AuctionSniperEndToEndTest {
 
         auction.announceClosed()
         application.showsSniperHasLostAuction()
+    }
+
+    @Test
+    fun sniperWinsAnAuctionByBiddingHigher() {
+        auction.startSellingItem()
+
+        application.startBiddingIn(auction)
+        auction.hasReceivedJoinRequestFromSniper(ApplicationRunner.SNIPER_XMPP_ID)
+
+        auction.reportPrice(/*current price*/1000, /*increment*/98, "other bidder")
+        application.hasShownSniperIsBidding()
+
+        auction.hasReceivedBid(1098, ApplicationRunner.SNIPER_XMPP_ID)
+
+        auction.reportPrice(/*current price*/1098, /*increment*/97, ApplicationRunner.SNIPER_XMPP_ID)
+        application.hasShownSniperIsWinning()
+
+        auction.announceClosed()
+        application.showsSniperHasWonAuction()
     }
 }
