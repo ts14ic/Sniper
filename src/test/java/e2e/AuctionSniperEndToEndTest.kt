@@ -12,6 +12,9 @@ class AuctionSniperEndToEndTest {
     TODO: multiple items
     TODO: add new items through UI
     TODO: stop bidding at stop price
+    TODO: translator takes invalid message from auction
+    TODO: translator takes invalid message version
+    TODO: xmpp auction fails to send xmpp message
      */
 
     private val auction = FakeAuctionServer("item-54321")
