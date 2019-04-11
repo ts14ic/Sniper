@@ -1,9 +1,10 @@
-package md.ts14ic.sniper
+package e2e
 
 import com.objogate.wl.swing.AWTEventQueueProber
 import com.objogate.wl.swing.driver.JFrameDriver
 import com.objogate.wl.swing.driver.JLabelDriver
 import com.objogate.wl.swing.gesture.GesturePerformer
+import md.ts14ic.sniper.Main
 
 import org.hamcrest.Matchers.equalTo
 

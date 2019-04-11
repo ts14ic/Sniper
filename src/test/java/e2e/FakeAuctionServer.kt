@@ -1,10 +1,11 @@
-package md.ts14ic.sniper
+package e2e
 
+import md.ts14ic.sniper.Main
 import md.ts14ic.sniper.Main.Companion.AUCTION_RESOURCE
 import md.ts14ic.sniper.Main.Companion.ITEM_ID_AS_LOGIN
+import org.hamcrest.Matcher
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.`is`
-import org.hamcrest.Matchers.notNullValue
+import org.hamcrest.Matchers.*
 import org.jivesoftware.smack.Chat
 import org.jivesoftware.smack.MessageListener
 import org.jivesoftware.smack.XMPPConnection
@@ -22,7 +23,7 @@ class FakeAuctionServer {
     val itemId: String
     private val messageListener = SingleMessageListener()
     private val connection: XMPPConnection
-    private var currentChat: Chat? = null
+    private lateinit var currentChat: Chat
 
     constructor(itemId: String) {
         this.itemId = itemId
@@ -38,12 +39,25 @@ class FakeAuctionServer {
         }
     }
 
-    fun hasReceivedJoinRequestFromSniper() {
-        messageListener.receivesAMessage()
+    fun hasReceivedJoinRequestFromSniper(sniperId: String) {
+        receivesAMessageMatching(sniperId, equalTo(Main.JOIN_COMMAND_FORMAT))
+    }
+
+    fun hasReceivedBid(bid: Int, sniperId: String) {
+        receivesAMessageMatching(sniperId, equalTo(Main.BID_COMMAND_FORMAT.format(bid)))
+    }
+
+    private fun receivesAMessageMatching(sniperId: String, matcher: Matcher<in String>) {
+        messageListener.receivesAMessage(matcher)
+        assertThat(currentChat.participant, equalTo(sniperId))
+    }
+
+    fun reportPrice(price: Int, increment: Int, bidder: String) {
+        currentChat.sendMessage(Main.PRICE_EVENT_FORMAT.format(price, increment, bidder))
     }
 
     fun announceClosed() {
-        currentChat!!.sendMessage(Message())
+        currentChat.sendMessage(Main.CLOSE_EVENT_FORMAT)
     }
 
     fun stop() {
@@ -61,8 +75,10 @@ class FakeAuctionServer {
             messages.add(message)
         }
 
-        fun receivesAMessage() {
-            assertThat("Message", messages.poll(5, TimeUnit.SECONDS), `is`(notNullValue()))
+        fun receivesAMessage(messageMatcher: Matcher<in String>) {
+            val message = messages.poll(5, TimeUnit.SECONDS)
+            assertThat("Message", message, `is`(notNullValue()))
+            assertThat(message.body, messageMatcher)
         }
     }
 }

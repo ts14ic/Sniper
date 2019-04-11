@@ -3,18 +3,25 @@ package md.ts14ic.sniper
 import org.jivesoftware.smack.XMPPConnection
 import org.jivesoftware.smack.packet.Message
 import java.awt.Color
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
 import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.SwingUtilities
 import javax.swing.border.LineBorder
 
-class Main {
+class Main : AuctionEventListener {
     companion object {
         const val MAIN_WINDOW_NAME = "Sniper"
         const val SNIPER_STATUS_NAME = "status"
         const val AUCTION_RESOURCE = "Auction"
         const val ITEM_ID_AS_LOGIN = "auction-%s"
         const val AUCTION_ID_FORMAT = "$ITEM_ID_AS_LOGIN@%s/$AUCTION_RESOURCE"
+
+        const val JOIN_COMMAND_FORMAT = "SOLVersion: 1.1; Command: Join;"
+        const val BID_COMMAND_FORMAT = "SOLVersion: 1.1; Command: Bid; Price: %s;"
+        const val CLOSE_EVENT_FORMAT = "SOLVersion: 1.1; Event: CLOSE;"
+        const val PRICE_EVENT_FORMAT = "SOLVersion: 1.1; Event: PRICE; CurrentPrice: %s; Increment: %s; Bidder: %s"
 
         private const val ARG_HOSTNAME = 0
         private const val ARG_USERNAME = 1
@@ -53,20 +60,38 @@ class Main {
     }
 
     private fun joinAuction(connection: XMPPConnection, itemId: String) {
+        disconnectWhenUiCloses(connection)
         val chat = connection.chatManager.createChat(
                 auctionId(itemId, connection),
-                { chat, message ->
-                    SwingUtilities.invokeLater {
-                        ui.showStatus(MainWindow.STATUS_LOST)
-                    }
-                }
+                AuctionMessageTranslator(this)
         )
-        chat.sendMessage(Message())
+        chat.sendMessage(JOIN_COMMAND_FORMAT)
+    }
+
+    private fun disconnectWhenUiCloses(connection: XMPPConnection) {
+        ui.addWindowListener(object : WindowAdapter() {
+            override fun windowClosed(e: WindowEvent?) {
+                connection.disconnect()
+            }
+        })
+    }
+
+    override fun auctionClosed() {
+        SwingUtilities.invokeLater {
+            ui.showStatus(MainWindow.STATUS_LOST)
+        }
+    }
+
+    override fun currentPrice(price: Int, increment: Int) {
+        SwingUtilities.invokeLater {
+            ui.showStatus(MainWindow.STATUS_BIDDING)
+        }
     }
 
     class MainWindow : JFrame {
         companion object {
             const val STATUS_JOINING = "Joining"
+            const val STATUS_BIDDING = "Bidding"
             const val STATUS_LOST = "Lost"
         }
 

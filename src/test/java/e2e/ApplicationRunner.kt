@@ -1,16 +1,17 @@
-package md.ts14ic.sniper
+package e2e
 
-import md.ts14ic.sniper.FakeAuctionServer.Companion.XMPP_HOSTNAME
+import e2e.FakeAuctionServer.Companion.XMPP_HOSTNAME
+import md.ts14ic.sniper.Main
 import md.ts14ic.sniper.Main.MainWindow.Companion.STATUS_JOINING
-import md.ts14ic.sniper.Main.MainWindow.Companion.STATUS_LOST
 
 class ApplicationRunner {
     companion object {
         const val SNIPER_ID = "sniper"
         const val SNIPER_PASSWORD = "sniper"
+        const val SNIPER_XMPP_ID = "sniper@localhost/Auction"
     }
 
-    private var driver: AuctionSniperDriver? = null
+    private lateinit var driver: AuctionSniperDriver
 
     fun startBiddingIn(auction: FakeAuctionServer) {
         val thread = Thread({
@@ -23,14 +24,18 @@ class ApplicationRunner {
         thread.isDaemon = true
         thread.start()
         driver = AuctionSniperDriver(/*timeout ms*/1000)
-        driver!!.showsSniperStatus(STATUS_JOINING)
+        driver.showsSniperStatus(STATUS_JOINING)
     }
 
     fun showsSniperHasLostAuction() {
-        driver!!.showsSniperStatus(STATUS_LOST)
+        driver.showsSniperStatus(Main.MainWindow.STATUS_LOST)
+    }
+
+    fun hasShownSniperIsBidding() {
+        driver.showsSniperStatus(Main.MainWindow.STATUS_BIDDING)
     }
 
     fun stop() {
-        driver?.dispose()
+        driver.dispose()
     }
 }
