@@ -6,7 +6,7 @@ import org.junit.Test
 class AuctionSniperEndToEndTest {
     /*
     DONE: single item join, lose without bidding
-    TODO: single item join, bid and lose
+    DONE: single item join, bid and lose
     TODO: single item join, bid and win
     TODO: single item - show price details
     TODO: multiple items

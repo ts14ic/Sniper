@@ -2,7 +2,6 @@ package md.ts14ic.sniper
 
 import org.jivesoftware.smack.Chat
 import org.jivesoftware.smack.XMPPConnection
-import org.jivesoftware.smack.packet.Message
 import java.awt.Color
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
@@ -64,16 +63,15 @@ class Main : SniperListener {
     private fun joinAuction(connection: XMPPConnection, itemId: String) {
         disconnectWhenUiCloses(connection)
 
-        val chat = connection.chatManager.createChat(auctionId(itemId, connection), /*listener*/null)
+        val chat = connection.chatManager.createChat(
+                auctionId(itemId, connection),
+                /*listener: added later*/null
+        )
         this.notToBeGcd = chat
 
-        val nullAuction = object : Auction {
-            override fun bid(amount: Int) {
-                chat.sendMessage(BID_COMMAND_FORMAT.format(amount))
-            }
-        }
-        chat.addMessageListener(AuctionMessageTranslator(AuctionSniper(nullAuction, this)))
-        chat.sendMessage(JOIN_COMMAND_FORMAT)
+        val auction = XmppAuction(chat)
+        chat.addMessageListener(AuctionMessageTranslator(AuctionSniper(auction, this)))
+        auction.join()
     }
 
     private fun disconnectWhenUiCloses(connection: XMPPConnection) {
@@ -128,4 +126,5 @@ class Main : SniperListener {
             sniperStatus.text = status
         }
     }
+
 }
