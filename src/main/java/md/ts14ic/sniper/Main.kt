@@ -1,5 +1,6 @@
 package md.ts14ic.sniper
 
+import org.jivesoftware.smack.Chat
 import org.jivesoftware.smack.XMPPConnection
 import org.jivesoftware.smack.packet.Message
 import java.awt.Color
@@ -10,7 +11,7 @@ import javax.swing.JLabel
 import javax.swing.SwingUtilities
 import javax.swing.border.LineBorder
 
-class Main : AuctionEventListener {
+class Main : SniperListener {
     companion object {
         const val MAIN_WINDOW_NAME = "Sniper"
         const val SNIPER_STATUS_NAME = "status"
@@ -48,6 +49,7 @@ class Main : AuctionEventListener {
     }
 
     private lateinit var ui: MainWindow
+    private var notToBeGcd: Chat? = null
 
     constructor() {
         startUserInterface()
@@ -61,10 +63,16 @@ class Main : AuctionEventListener {
 
     private fun joinAuction(connection: XMPPConnection, itemId: String) {
         disconnectWhenUiCloses(connection)
-        val chat = connection.chatManager.createChat(
-                auctionId(itemId, connection),
-                AuctionMessageTranslator(this)
-        )
+
+        val chat = connection.chatManager.createChat(auctionId(itemId, connection), /*listener*/null)
+        this.notToBeGcd = chat
+
+        val nullAuction = object : Auction {
+            override fun bid(amount: Int) {
+                chat.sendMessage(BID_COMMAND_FORMAT.format(amount))
+            }
+        }
+        chat.addMessageListener(AuctionMessageTranslator(AuctionSniper(nullAuction, this)))
         chat.sendMessage(JOIN_COMMAND_FORMAT)
     }
 
@@ -76,7 +84,7 @@ class Main : AuctionEventListener {
         })
     }
 
-    override fun auctionClosed() {
+    override fun sniperLost() {
         SwingUtilities.invokeLater {
             ui.showStatus(MainWindow.STATUS_LOST)
         }
