@@ -1,25 +1,33 @@
 package unit
 
-import io.mockk.*
-import io.mockk.impl.annotations.InjectMockKs
+import io.mockk.MockKAnnotations
 import io.mockk.impl.annotations.RelaxedMockK
+import io.mockk.verify
+import io.mockk.verifyOrder
 import md.ts14ic.sniper.Auction
-import md.ts14ic.sniper.AuctionEventListener.*
+import md.ts14ic.sniper.AuctionEventListener.PriceSource
 import md.ts14ic.sniper.AuctionSniper
 import md.ts14ic.sniper.SniperListener
 import org.junit.Before
 import org.junit.Test
 
 class AuctionSniperTest {
+    companion object {
+        private val ITEM_ID = "item"
+    }
+
     @RelaxedMockK
     lateinit var sniperListener: SniperListener
     @RelaxedMockK
     lateinit var auction: Auction
-    @InjectMockKs
+
     lateinit var sniper: AuctionSniper
 
     @Before
-    fun initMocks() = MockKAnnotations.init(this)
+    fun initMocks() {
+        MockKAnnotations.init(this)
+        sniper = AuctionSniper(ITEM_ID, auction, sniperListener)
+    }
 
     @Test
     fun reportsLostIfAuctionClosesImmediately() {
@@ -38,7 +46,7 @@ class AuctionSniperTest {
 
         // ASSERT
         verifyOrder {
-            sniperListener.sniperBidding()
+            sniperListener.sniperBidding(any<AuctionSniper.SniperState>())
             sniperListener.sniperLost()
         }
     }
@@ -59,10 +67,13 @@ class AuctionSniperTest {
     @Test
     fun bidsHigherAndReportsBiddingWhenNewPriceArrives() {
         // ACT
-        sniper.currentPrice(1001, 25, PriceSource.FromOtherBidder)
+        val price = 1001
+        val increment = 25
+        val bid = price + increment
+        sniper.currentPrice(price, increment, PriceSource.FromOtherBidder)
 
         // ASSERT
-        verify { sniperListener.sniperBidding() }
+        verify { sniperListener.sniperBidding(AuctionSniper.SniperState(ITEM_ID, price, bid)) }
     }
 
     @Test

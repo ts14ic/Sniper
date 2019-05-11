@@ -67,6 +67,7 @@ class Main {
         chat.addMessageListener(AuctionMessageTranslator(
                 connection.user,
                 AuctionSniper(
+                        itemId,
                         auction,
                         SniperStateDisplayer(ui)
                 )

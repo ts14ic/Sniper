@@ -47,6 +47,10 @@ class MainWindow : JFrame {
     fun showStatus(status: String) {
         snipers.statusText = status
     }
+
+    fun sniperStateChanged(state: AuctionSniper.SniperState, statusText: String) {
+        snipers.sniperStateChanged(state, statusText)
+    }
 }
 
 class SnipersTableModel : AbstractTableModel {
@@ -71,6 +75,19 @@ class SnipersTableModel : AbstractTableModel {
     override fun getValueAt(rowIndex: Int, columnIndex: Int): String {
         return statusText
     }
+
+    enum class Column {
+        ITEM_IDENTIFIER,
+        LAST_PRICE,
+        LAST_BID,
+        SNIPER_STATUS;
+
+        companion object {
+            fun at(offset: Int): Column {
+                return values()[offset]
+            }
+        }
+    }
 }
 
 class SniperStateDisplayer : SniperListener {
@@ -80,8 +97,10 @@ class SniperStateDisplayer : SniperListener {
         this.ui = ui
     }
 
-    override fun sniperBidding() {
-        showStatus(MainWindow.STATUS_BIDDING)
+    override fun sniperBidding(state: AuctionSniper.SniperState) {
+        SwingUtilities.invokeLater {
+            ui.sniperStatusChanged(state, MainWindow.STATUS_BIDDING)
+        }
     }
 
     override fun sniperLost() {
